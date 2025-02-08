@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-applicationset
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - name: dev-nginx
+        namespace: dev
+        path: dev-nginx
+      - name: staging-nginx
+        namespace: staging
+        path: staging-nginx
+      - name: production-nginx
+        namespace: production
+        path: production-nginx
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/smartlizzard/nginx-deployment-lab
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
